@@ -1,36 +1,27 @@
 package com.re.project.service;
 
-import com.re.project.entity.TokenBlacklist;
-import com.re.project.repository.TokenBlacklistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class TokenBlacklistService {
 
-    private final TokenBlacklistRepository tokenBlacklistRepository;
+    private final StringRedisTemplate redisTemplate;
+    private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 
-    @Transactional
     public void addToBlacklist(String token, long expirationInMs) {
         if (expirationInMs > 0) {
-            TokenBlacklist blacklist = TokenBlacklist.builder()
-                    .token(token)
-                    .expiresAt(LocalDateTime.now().plusNanos(expirationInMs * 1_000_000))
-                    .build();
-            tokenBlacklistRepository.save(blacklist);
+            String key = BLACKLIST_PREFIX + token;
+            redisTemplate.opsForValue().set(key, "revoked", expirationInMs, TimeUnit.MILLISECONDS);
         }
     }
 
     public boolean isBlacklisted(String token) {
-        return tokenBlacklistRepository.existsByToken(token);
-    }
-
-    @Transactional
-    public void cleanupExpiredTokens() {
-        tokenBlacklistRepository.deleteExpiredTokens(LocalDateTime.now());
+        String key = BLACKLIST_PREFIX + token;
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 }

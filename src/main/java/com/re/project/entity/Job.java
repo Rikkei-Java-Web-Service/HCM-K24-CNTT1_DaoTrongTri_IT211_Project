@@ -36,8 +36,9 @@ public class Job {
     @JoinColumn(name = "employer_id")
     private User employer;
 
-    // e.g. OPEN, CLOSED
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private JobStatusEnum status;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Application> applications;
@@ -55,7 +56,7 @@ public class Job {
         this.createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.updatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         if (this.status == null) {
-            this.status = "OPEN";
+            this.status = JobStatusEnum.PENDING_APPROVAL;
         }
     }
 }

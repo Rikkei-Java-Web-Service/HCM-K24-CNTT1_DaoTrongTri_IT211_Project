@@ -59,10 +59,10 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     // 1. Cho phép truy cập công khai
-                    .requestMatchers("/api/auth/**", "/api/v1/jobs").permitAll()
+                    .requestMatchers("/api/auth/**", "/api/v1/jobs", "/error").permitAll()
 
-                    // 2. Các API phân quyền
-                    .requestMatchers("/api/v1/admin/**", "/api/users/**").hasRole("ADMIN")
+                    // 2. Các API phân quyền theo Role
+                    .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/v1/employer/**").hasRole("EMPLOYER")
                     .requestMatchers("/api/v1/candidate/**").hasRole("CANDIDATE")
 

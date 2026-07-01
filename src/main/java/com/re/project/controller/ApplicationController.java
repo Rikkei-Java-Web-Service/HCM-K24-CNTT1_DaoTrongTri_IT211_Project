@@ -37,6 +37,12 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.getApplicationsForCandidate(authentication.getName()));
     }
 
+    @DeleteMapping("/candidate/applications/{id}")
+    public ResponseEntity<Void> deleteApplication(@PathVariable Long id, Authentication authentication) {
+        applicationService.deleteApplication(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/employer/jobs/{jobId}/applications")
     public ResponseEntity<List<ApplicationDto.Response>> getJobApplications(@PathVariable Long jobId,
             Authentication authentication) {

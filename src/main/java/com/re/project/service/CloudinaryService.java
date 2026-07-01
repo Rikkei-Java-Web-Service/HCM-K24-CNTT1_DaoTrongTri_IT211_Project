@@ -13,12 +13,15 @@ import java.util.Map;
 public class CloudinaryService {
 
     private final Cloudinary cloudinary;
+    private final String folder;
 
     public CloudinaryService(
             @Value("${cloudinary.cloud_name:demo}") String cloudName,
             @Value("${cloudinary.api_key:key}") String apiKey,
-            @Value("${cloudinary.api_secret:secret}") String apiSecret) {
-        
+            @Value("${cloudinary.api_secret:secret}") String apiSecret,
+            @Value("${cloudinary.folder:cv_uploads}") String folder) {
+
+        this.folder = folder;
         cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", cloudName,
                 "api_key", apiKey,
@@ -27,7 +30,8 @@ public class CloudinaryService {
     }
 
     public String uploadFile(MultipartFile file) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap("folder", folder, "resource_type", "raw"));
         return uploadResult.get("secure_url").toString();
     }
 }

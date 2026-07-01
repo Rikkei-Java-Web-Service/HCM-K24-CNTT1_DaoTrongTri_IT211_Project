@@ -33,8 +33,9 @@ public class Application {
     @Column(name = "cover_letter", columnDefinition = "TEXT")
     private String coverLetter;
 
-    // PENDING, REVIEWING, INTERVIEWING, ACCEPTED, REJECTED
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApplicationStatusEnum status;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -49,7 +50,7 @@ public class Application {
         this.createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.updatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         if (this.status == null) {
-            this.status = "PENDING";
+            this.status = ApplicationStatusEnum.PENDING;
         }
     }
 }

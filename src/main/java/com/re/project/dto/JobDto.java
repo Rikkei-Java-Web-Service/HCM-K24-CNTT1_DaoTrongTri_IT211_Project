@@ -13,6 +13,14 @@ public class JobDto {
     }
 
     @Data
+    public static class UpdateRequest {
+        private String title;
+        private String description;
+        private String location;
+        private Double salary;
+    }
+
+    @Data
     public static class Response {
         private Long id;
         private String title;

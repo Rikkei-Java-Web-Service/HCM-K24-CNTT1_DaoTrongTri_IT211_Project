@@ -43,7 +43,7 @@ public class AuthService {
     private long accessTokenExpirationMs;
 
     /**
-     * Sprint 2 - Task 5: Login cấp cả Access Token + Refresh Token
+     * Login cấp cả Access Token + Refresh Token
      */
     @Transactional
     public LoginResponse handleLogin(LoginRequest loginRequest) {
@@ -85,7 +85,7 @@ public class AuthService {
     }
 
     /**
-     * Sprint 2 - Task 6: Xoay vòng Token (Refresh Token Rotation)
+     * Xoay vòng Token (Refresh Token Rotation)
      * Dùng Refresh Token cũ → nhận Access Token mới + Refresh Token mới
      */
     @Transactional
@@ -133,12 +133,16 @@ public class AuthService {
     }
 
     /**
-     * Sprint 1 - Task 2: Đăng ký tài khoản (BCrypt)
+     * Đăng ký tài khoản (BCrypt)
      */
     @Transactional
     public RegisterResponse handleRegister(RegisterRequest request) {
         if (userRepository.findUserByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
+        }
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
         }
 
         User user = User.builder()
@@ -169,7 +173,7 @@ public class AuthService {
     }
 
     /**
-     * Sprint 2 - Task 11: Đổi mật khẩu
+     * Đổi mật khẩu
      */
     @Transactional
     public void changePassword(String username, String oldPassword, String newPassword) {
@@ -192,7 +196,7 @@ public class AuthService {
     }
 
     /**
-     * Sprint 2 - Task 11: Quên mật khẩu (đặt lại bằng email)
+     * Quên mật khẩu (đặt lại bằng email)
      * Tạm thời: tìm user theo email, sinh mật khẩu mới tạm thời
      */
     @Transactional

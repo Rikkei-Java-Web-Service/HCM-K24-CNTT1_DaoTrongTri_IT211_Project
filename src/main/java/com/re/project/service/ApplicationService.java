@@ -2,7 +2,9 @@ package com.re.project.service;
 
 import com.re.project.dto.ApplicationDto;
 import com.re.project.entity.Application;
+import com.re.project.entity.ApplicationStatusEnum;
 import com.re.project.entity.Job;
+import com.re.project.entity.JobStatusEnum;
 import com.re.project.entity.User;
 import com.re.project.exception.ResourceNotFoundException;
 import com.re.project.repository.ApplicationRepository;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,15 +35,17 @@ public class ApplicationService {
         Job job = jobRepository.findById(request.getJobId())
                 .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
 
-        if (!"OPEN".equals(job.getStatus())) {
+        // Kiểm tra tin tuyển dụng vẫn đang mở (đã được duyệt)
+        if (job.getStatus() != JobStatusEnum.APPROVED) {
             throw new RuntimeException("Job is no longer accepting applications");
         }
 
+        // Chống nộp trùng hồ sơ
         if (applicationRepository.existsByCandidateIdAndJobId(candidate.getId(), job.getId())) {
             throw new RuntimeException("You have already applied for this job");
         }
 
-        // Cập nhật cvUrl cho Candidate nếu có gửi lên (hỗ trợ UC-05)
+        // Cập nhật cvUrl cho Candidate nếu có gửi lên
         if (request.getCvUrl() != null && !request.getCvUrl().isEmpty()) {
             candidate.setCvUrl(request.getCvUrl());
             userRepository.save(candidate);
@@ -49,18 +55,18 @@ public class ApplicationService {
                 .candidate(candidate)
                 .job(job)
                 .coverLetter(request.getCoverLetter())
-                .status("PENDING")
+                .status(ApplicationStatusEnum.PENDING)
                 .build();
 
         Application savedApp = applicationRepository.save(application);
         return mapToResponse(savedApp);
     }
 
-    // Định nghĩa luồng vòng đời trạng thái hồ sơ hợp lệ
-    private static final java.util.Map<String, java.util.Set<String>> VALID_TRANSITIONS = java.util.Map.of(
-            "PENDING", java.util.Set.of("REVIEWING"),
-            "REVIEWING", java.util.Set.of("INTERVIEWING", "REJECTED"),
-            "INTERVIEWING", java.util.Set.of("ACCEPTED", "REJECTED")
+    // Ràng buộc luồng vòng đời chuyển trạng thái hồ sơ
+    private static final Map<ApplicationStatusEnum, Set<ApplicationStatusEnum>> VALID_TRANSITIONS = Map.of(
+            ApplicationStatusEnum.PENDING, Set.of(ApplicationStatusEnum.REVIEWING),
+            ApplicationStatusEnum.REVIEWING, Set.of(ApplicationStatusEnum.INTERVIEWING, ApplicationStatusEnum.REJECTED),
+            ApplicationStatusEnum.INTERVIEWING, Set.of(ApplicationStatusEnum.ACCEPTED, ApplicationStatusEnum.REJECTED)
     );
 
     @Transactional
@@ -72,16 +78,23 @@ public class ApplicationService {
             throw new RuntimeException("You do not have permission to update this application");
         }
 
-        String currentStatus = application.getStatus();
-        java.util.Set<String> allowedNextStatuses = VALID_TRANSITIONS.getOrDefault(currentStatus, java.util.Set.of());
-
-        if (!allowedNextStatuses.contains(newStatus.toUpperCase())) {
-            throw new RuntimeException(
-                    String.format("Invalid status transition: %s → %s. Allowed: %s",
-                            currentStatus, newStatus, allowedNextStatuses));
+        ApplicationStatusEnum currentStatus = application.getStatus();
+        ApplicationStatusEnum targetStatus;
+        try {
+            targetStatus = ApplicationStatusEnum.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + newStatus);
         }
 
-        application.setStatus(newStatus.toUpperCase());
+        Set<ApplicationStatusEnum> allowedNextStatuses = VALID_TRANSITIONS.getOrDefault(currentStatus, Set.of());
+
+        if (!allowedNextStatuses.contains(targetStatus)) {
+            throw new RuntimeException(
+                    String.format("Invalid status transition: %s → %s. Allowed: %s",
+                            currentStatus, targetStatus, allowedNextStatuses));
+        }
+
+        application.setStatus(targetStatus);
         Application savedApp = applicationRepository.save(application);
         return mapToResponse(savedApp);
     }
@@ -110,6 +123,18 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteApplication(Long applicationId, String candidateUsername) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        if (!application.getCandidate().getUsername().equals(candidateUsername)) {
+            throw new RuntimeException("You do not have permission to delete this application");
+        }
+
+        applicationRepository.delete(application);
+    }
+
     private ApplicationDto.Response mapToResponse(Application app) {
         ApplicationDto.Response res = new ApplicationDto.Response();
         res.setId(app.getId());
@@ -119,7 +144,7 @@ public class ApplicationService {
         res.setCandidateName(app.getCandidate().getFullName());
         res.setCvUrl(app.getCandidate().getCvUrl());
         res.setCoverLetter(app.getCoverLetter());
-        res.setStatus(app.getStatus());
+        res.setStatus(app.getStatus().name());
         res.setCreatedAt(app.getCreatedAt());
         return res;
     }

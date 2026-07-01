@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
-    Page<Job> findAllByStatus(String status, Pageable pageable);
+    Page<Job> findAllByStatus(com.re.project.entity.JobStatusEnum status, Pageable pageable);
     List<Job> findByEmployerId(Long employerId);
 }

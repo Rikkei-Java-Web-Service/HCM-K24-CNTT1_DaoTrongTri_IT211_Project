@@ -25,7 +25,7 @@ public class AuthController {
     private final TokenBlacklistService tokenBlacklistService;
 
     /**
-     * Sprint 2 - Task 5: Đăng nhập (cấp Access Token + Refresh Token)
+     * Đăng nhập (cấp Access Token + Refresh Token)
      */
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -34,7 +34,7 @@ public class AuthController {
     }
 
     /**
-     * Sprint 1 - Task 2: Đăng ký tài khoản (BCrypt)
+     * Đăng ký tài khoản (BCrypt)
      */
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -43,7 +43,7 @@ public class AuthController {
     }
 
     /**
-     * Sprint 2 - Task 6: Xoay vòng Token (Refresh Token Rotation)
+     * Xoay vòng Token (Refresh Token Rotation)
      */
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     /**
-     * Sprint 2 - Task 7: Đăng xuất (Đưa Access Token vào Blacklist Database)
+     * Đăng xuất (Đưa Access Token vào Blacklist Database)
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
@@ -66,7 +66,7 @@ public class AuthController {
     }
 
     /**
-     * Sprint 2 - Task 11: Đổi mật khẩu
+     * Đổi mật khẩu
      */
     @PutMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(
@@ -77,7 +77,7 @@ public class AuthController {
     }
 
     /**
-     * Sprint 2 - Task 11: Quên mật khẩu
+     * Quên mật khẩu
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {

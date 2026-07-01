@@ -23,17 +23,24 @@ public class JobController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PutMapping("/admin/jobs/{id}/approve")
-    public ResponseEntity<JobDto.Response> approveJob(@PathVariable Long id) {
-        JobDto.Response response = jobService.approveJob(id);
-        return ResponseEntity.ok(response);
-    }
-
     @PutMapping("/employer/jobs/{id}/status")
     public ResponseEntity<JobDto.Response> updateJobStatus(@PathVariable Long id, @RequestParam String status,
             Authentication authentication) {
         JobDto.Response response = jobService.updateJobStatus(id, status, authentication.getName());
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/employer/jobs/{id}")
+    public ResponseEntity<JobDto.Response> updateJob(@PathVariable Long id, @RequestBody JobDto.UpdateRequest request,
+            Authentication authentication) {
+        JobDto.Response response = jobService.updateJob(id, request, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/employer/jobs/{id}")
+    public ResponseEntity<Void> deleteJob(@PathVariable Long id, Authentication authentication) {
+        jobService.deleteJob(id, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/jobs")
